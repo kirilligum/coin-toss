@@ -7,11 +7,7 @@ services:
     depends_on:
       hardhat:
         condition: service_healthy
-    environment:
-      - CONTRACTS=CoinToss
-      - RPC_URL=http://localhost:8545
-      - MNEMONIC=test test test test test test test test test test test junk
-      - NETWORK=localhost
+    command: ["mkdir -p deployments/localhost && forge create --rpc-url '${RPC_URL:-http://localhost:8545}' --mnemonic '${MNEMONIC:-test test test test test test test test test test test junk}' --json /opt/contracts/src/${NETWORK:-localhost}/coin-toss.sol:CoinToss | tee deployments/localhost/CoinToss.json"]
     volumes:
       - ./deployments:/opt/contracts/deployments
 

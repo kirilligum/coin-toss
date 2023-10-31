@@ -1,20 +1,21 @@
 # syntax=docker.io/docker/dockerfile:1.4
 
-FROM node:latest
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends jq\
-    && rm -rf /var/apt/lists/*
+# image to install contracts dependencies
+FROM node:latest as dependencies-installer
 
 WORKDIR /opt/contracts
 COPY . .
 
 RUN npm install
 
-# copy foundry's commands binaries
-COPY --from=ghcr.io/foundry-rs/foundry:latest /usr/local/bin /usr/local/bin
+# final image that has compiled contracts
+FROM ghcr.io/foundry-rs/foundry:latest
+
+COPY --from=dependencies-installer /opt/contracts /opt/contracts
+
+WORKDIR /opt/contracts
 
 # compile contracts
 RUN forge build
 
-ENTRYPOINT [ "./deploy.sh" ]
+RUN mkdir deployments
