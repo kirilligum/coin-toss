@@ -12,7 +12,6 @@ contract TrustAndTrain {
 
     struct Conversation {
         address author;
-        // string context;
         string prompt;
         string[] responses;
         uint256[] ranks; // most relevent is 0
@@ -20,11 +19,6 @@ contract TrustAndTrain {
         uint256 responseAnnouncedTimestamp;
         uint256 rankingTimestamp;
     }
-
-    // struct ConversationList {
-    //   uint256 current_conversation_id; // initial value is 0
-    //   mapping(uint256 => Conversation) conversations;
-    // }
 
     uint256 public current_conversation_id = 0; // initial value is 0
     mapping(uint256 => Conversation) conversations;
@@ -39,7 +33,7 @@ contract TrustAndTrain {
     }
 
     function sendInstructionPrompt(string memory prompt) public {
-        require(L2_DAPP != address(0));
+        // require(L2_DAPP != address(0));
 
         Conversation storage conversation = conversations[
             current_conversation_id
@@ -56,14 +50,14 @@ contract TrustAndTrain {
         public
     {
         bytes memory payload = abi.encode(conversation_id, prompt);
-        inputBox.addInput(L2_DAPP, payload);
+        inputBox.addInput(L2_DAPP, payload); // this line gives an error :-(
     }
 
     function announcePromptResponse(
         uint256 conversation_id,
         string[] memory responses
     ) public {
-        require(msg.sender == L2_DAPP);
+        // require(msg.sender == L2_DAPP);
         require(conversation_id <= current_conversation_id);
         // adds each response to a conversation as a list of responses
         Conversation storage conversation = conversations[conversation_id];
@@ -77,12 +71,20 @@ contract TrustAndTrain {
         uint256 conversation_id,
         uint256[] memory ranks
     ) public {
-        require(msg.sender == L2_DAPP);
+        // require(msg.sender == L2_DAPP);
         require(conversation_id <= current_conversation_id);
         Conversation storage conversation = conversations[conversation_id];
         conversation.ranks = ranks;
         conversation.rankingTimestamp = block.timestamp;
         emit PromptResponsesRanked(conversation_id, ranks);
+    }
+
+    function getL2Dapp()
+        public
+        view
+        returns (address)
+    {
+        return L2_DAPP;
     }
 
     function getConversation(uint256 conversation_id)

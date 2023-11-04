@@ -1,12 +1,8 @@
 #!/bin/bash
 
-export AUTHOR="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-export AUTHOR_PRIVATE_KEY="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-export PROMPT="The green dragon woke up"
-export TRUST_AND_TRAIN_L1_ADDRESS="0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1"
-export L2_DAPP_ADDRESS="0x70ac08179605AF2D9e75782b8DEcDD3c22aA4D0C"
-export RPC_URL="http://localhost:8545"
+# export variables for the test accounts
 
+source ./test_hh_accounts.sh
 
 # To build the application, run the following command:
 
@@ -23,7 +19,7 @@ docker compose -f docker-compose.yml -f docker-compose.override.yml down -v
 
 # 1. Execute the `set_dapp_address` method of the `coin-toss` contract to set the rollup contract address. This step is to allow the layer-1 contract to send inputs to the Cartesi Rollups DApp.
 
-docker run --rm --net="host" ghcr.io/foundry-rs/foundry "cast send --private-key $AUTHOR_PRIVATE_KEY --rpc-url $RPC_URL $TRUST_AND_TRAIN_L1_ADDRESS \"set_dapp_address(address)\" $L2_DAPP_ADDRESS"
+docker run --rm --net="host" ghcr.io/foundry-rs/foundry "cast send --private-key $DATASET_CREATOR_PRIVATE_KEY --rpc-url $RPC_URL $TRUST_AND_TRAIN_L1_ADDRESS \"set_dapp_address(address)\" $L2_DAPP_ADDRESS"
 
 #  "cast send --private-key $PLAYER1_PRIVATE_KEY --rpc-url $RPC_URL $TRUST_AND_TRAIN_L1_ADDRESS \"set_dapp_address(address)\" $L2_DAPP_ADDRESS"
 # This is the command that will be run inside the Docker container once it starts. It seems to be using a utility or command-line interface (CLI) named cast provided within the foundry container image to interact with a blockchain. The breakdown is as follows:
@@ -40,7 +36,7 @@ docker run --rm --net="host" ghcr.io/foundry-rs/foundry "cast send --private-key
 
 # 2. Execute the `sendInstructionPrompt` method passing the prompt for the LLM that is running inside the Cartesi Machine
 
-docker run --rm --net="host" ghcr.io/foundry-rs/foundry "cast send --private-key $AUTHOR_PRIVATE_KEY --rpc-url $RPC_URL $TRUST_AND_TRAIN_L1_ADDRESS \"sendInstructionPrompt(string)\" $PROMPT"
+docker run --rm --net="host" ghcr.io/foundry-rs/foundry "cast send --private-key $DATASET_CREATOR_PRIVATE_KEY --rpc-url $RPC_URL $TRUST_AND_TRAIN_L1_ADDRESS \"sendInstructionPrompt(string)\" $LLM_PROMPT"
 
 # 3. (Optional) Check the notice and the voucher using the [frontend-console](https://github.com/cartesi/rollups-examples/tree/main/frontend-console).
 
@@ -57,5 +53,5 @@ docker run --rm --net="host" ghcr.io/foundry-rs/foundry "cast call --rpc-url $RP
 
 # 7. Execute 'rankPromptResponses(uint256,uint256[])' specifying preferences for which prompts you prefer. Default is the preference for the first over second
 
-# docker run --rm --net="host" ghcr.io/foundry-rs/foundry "cast send --private-key $AUTHOR_PRIVATE_KEY --rpc-url $RPC_URL $TRUST_AND_TRAIN_L1_ADDRESS \"rankPromptResponses(uint256,uint256[])\" 0 1 0"
-docker run --rm --net="host" ghcr.io/foundry-rs/foundry "cast send --private-key $AUTHOR_PRIVATE_KEY --rpc-url $RPC_URL $TRUST_AND_TRAIN_L1_ADDRESS \"rankPromptResponses(uint256,uint256[])\" 0 '[1,0]'"
+# docker run --rm --net="host" ghcr.io/foundry-rs/foundry "cast send --private-key $DATASET_CREATOR_PRIVATE_KEY --rpc-url $RPC_URL $TRUST_AND_TRAIN_L1_ADDRESS \"rankPromptResponses(uint256,uint256[])\" 0 1 0"
+docker run --rm --net="host" ghcr.io/foundry-rs/foundry "cast send --private-key $DATASET_CREATOR_PRIVATE_KEY --rpc-url $RPC_URL $TRUST_AND_TRAIN_L1_ADDRESS \"rankPromptResponses(uint256,uint256[])\" 0 '[1,0]'"
