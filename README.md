@@ -198,6 +198,12 @@ docker run --rm --net="host" ghcr.io/foundry-rs/foundry "cast send --private-key
 curl --data '{"id":1337,"jsonrpc":"2.0","method":"evm_increaseTime","params":[864010]}' http://localhost:8545
 ```
 
+6. Add the coin-toss deployment data to the front-console. Assuming that coin-toss is a sibling directory to rollups-examples
+
+```shell
+ln -s ../../coin-toss/deployments/* ../deployments/
+```
+
 6. Execute the voucher using the `frontend-console`.
 ```shell
 yarn start voucher execute --index 0 --input 0
@@ -206,7 +212,7 @@ yarn start voucher execute --index 0 --input 0
 7. Check the value of the `last_game` variable in the `CoinToss` smart contract to see the persisted result in layer-1 due to the voucher execution.
 
 ```shell
-docker run --rm --net="host" ghcr.io/foundry-rs/foundry "cast call --rpc-url $RPC_URL ${COIN_TOSS_ADDRESS} \"last_game()\""
+docker run --rm --net="host" ghcr.io/foundry-rs/foundry "cast call --rpc-url $RPC_URL $COIN_TOSS_ADDRESS \"last_game()\""
 ```
 
 ^ **The value was chosen for testing purposes, do not use it in production!!!** The default value is 1 week.
