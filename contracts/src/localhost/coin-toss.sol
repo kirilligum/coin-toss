@@ -3,24 +3,25 @@ pragma solidity >=0.7.0 <0.9.0;
 
 import "@cartesi/rollups/contracts/inputs/IInputBox.sol";
 
-contract CoinToss {
+contract TrustAndTrain {
     address deployer;
     address public L2_DAPP;
-    Game public last_game;
+    string public license = "MIT";
+    string public llm = "stories15m";
     IInputBox inputBox = IInputBox(0x59b22D57D4f067708AB0c00552767405926dc768);
 
-    struct Game {
-        address winner;
-        address pending_player;
-        bool exists;
+    struct Conversation {
+        address author;
+        string prompt;
+        string[] responses;
+        uint256[] ranks; // most relevent is 0
+        uint256 createInstructionTimestamp;
+        uint256 responseAnnouncedTimestamp;
+        uint256 rankingTimestamp;
     }
 
-    struct Games {
-        uint256 current_match_id; // initial value is 0
-        mapping (uint => Game) matches;
-    }
-
-    mapping (bytes => Games) games; // maps gamekey to gameID
+    uint256 public current_conversation_id = 0; // initial value is 0
+    mapping(uint256 => Conversation) conversations;
 
     constructor() {
         deployer = msg.sender;
@@ -28,68 +29,97 @@ contract CoinToss {
 
     function set_dapp_address(address l2_dapp) public {
         require(msg.sender == deployer);
-
         L2_DAPP = l2_dapp;
     }
 
-    function get_gamekey(address player, address opponent) internal pure returns (bytes memory) {
-        bytes memory gamekey;
-        if (player < opponent) {
-            gamekey = abi.encode(player, opponent);
-        } else {
-            gamekey = abi.encode(opponent, player);
-        }
+    function sendInstructionPrompt(string memory prompt) public {
+        // require(L2_DAPP != address(0));
 
-        return gamekey;
+        Conversation storage conversation = conversations[
+            current_conversation_id
+        ];
+        conversation.author = msg.sender;
+        conversation.prompt = prompt;
+        conversation.createInstructionTimestamp = block.timestamp;
+        cartesiSubmitPrompt(current_conversation_id, prompt);
+        emit PromptSent(current_conversation_id, prompt);
+        current_conversation_id++;
     }
 
-    // used to create or play game between two players
-    function play(address opponent) public {
-        require(L2_DAPP != address(0));
-
-        bytes memory gamekey = get_gamekey(msg.sender, opponent);
-        Game storage game = games[gamekey].matches[games[gamekey].current_match_id];
-
-        require(!game.exists || game.pending_player == msg.sender);
-
-        if (!game.exists) {
-            game.pending_player = opponent;
-            game.exists = true;
-        } else if (game.pending_player == msg.sender) {
-            l2_coin_toss(gamekey);
-            game.pending_player = address(0);
-        }
+    function cartesiSubmitPrompt(uint256 conversation_id, string memory prompt)
+        public
+    {
+        bytes memory payload = abi.encode(conversation_id, prompt);
+        inputBox.addInput(L2_DAPP, payload); // this line gives an error :-(
     }
 
-    function l2_coin_toss(bytes memory gamekey) private {
-        // generate randomness
-        uint256 coin_toss_seed = uint256(blockhash(block.number - 1));
-
-        bytes memory payload = abi.encode(gamekey, coin_toss_seed);
-
-        // calls Cartesi's addInput to run the "coin toss" inside Cartesi Machine
-        inputBox.addInput(L2_DAPP, payload);
+    function announcePromptResponse(
+        uint256 conversation_id,
+        string[] memory responses
+    ) public {
+        // require(msg.sender == L2_DAPP);
+        require(conversation_id <= current_conversation_id);
+        // adds each response to a conversation as a list of responses
+        Conversation storage conversation = conversations[conversation_id];
+        conversation.responses = responses; // this is a list of responses to the prompt
+        conversation.responseAnnouncedTimestamp = block.timestamp;
+        emit PromptResponseAnnounced(conversation_id, responses);
     }
 
-    function announce_winner(address player1, address player2, address winner) public {
-        require(msg.sender == L2_DAPP && (winner == player1 || winner == player2));
-
-        bytes memory gamekey = get_gamekey(player1, player2);
-        Game storage game = games[gamekey].matches[games[gamekey].current_match_id];
-
-        require(game.exists);
-
-        emit GameResult(gamekey, games[gamekey].current_match_id, winner);
-
-        game.winner = winner;
-        games[gamekey].current_match_id++;
-
-        last_game = game;
+    //a function to assign a rank to prompt responses
+    function rankPromptResponses(
+        uint256 conversation_id,
+        uint256[] memory ranks
+    ) public {
+        // require(msg.sender == L2_DAPP);
+        require(conversation_id <= current_conversation_id);
+        Conversation storage conversation = conversations[conversation_id];
+        conversation.ranks = ranks;
+        conversation.rankingTimestamp = block.timestamp;
+        emit PromptResponsesRanked(conversation_id, ranks);
     }
 
-    event GameResult (
-        bytes gamekey,
-        uint256 gameId,
-        address winner
-    );
+    function getL2Dapp()
+        public
+        view
+        returns (address)
+    {
+        return L2_DAPP;
+    }
+
+    function getConversation(uint256 conversation_id)
+        public
+        view
+        returns (Conversation memory)
+    {
+        return conversations[conversation_id];
+    }
+
+    function getPrompt(uint256 conversation_id)
+        public
+        view
+        returns (string memory)
+    {
+        return conversations[conversation_id].prompt;
+    }
+
+    function getResponses(uint256 conversation_id)
+        public
+        view
+        returns (string[] memory)
+    {
+        return conversations[conversation_id].responses;
+    }
+
+    function getRanks(uint256 conversation_id)
+        public
+        view
+        returns (uint256[] memory)
+    {
+        return conversations[conversation_id].ranks;
+    }
+
+    event PromptSent(uint256 conversation_id, string prompt);
+    event PromptResponseAnnounced(uint256 conversation_id, string[] responses);
+    event PromptResponsesRanked(uint256 conversation_id, uint256[] ranks);
 }
