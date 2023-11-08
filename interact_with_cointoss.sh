@@ -12,6 +12,8 @@ docker run --rm --net="host" ghcr.io/foundry-rs/foundry "cast send --private-key
 docker run --rm --net="host" ghcr.io/foundry-rs/foundry "cast send --private-key $PLAYER2_PRIVATE_KEY --rpc-url $RPC_URL $COIN_TOSS_ADDRESS \"play(address)\" $PLAYER1"
 curl --data '{"id":1337,"jsonrpc":"2.0","method":"evm_increaseTime","params":[864010]}' http://localhost:8545
 
+rm ../rollups-examples/frontend-console/deployments/localhost
+ln -s ./deployments/* ../rollups-examples/frontend-console/deployments/
 cd ../rollups-examples/frontend-console/
 yarn start notice list
 yarn start voucher list
