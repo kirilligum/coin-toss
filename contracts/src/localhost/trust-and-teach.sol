@@ -32,10 +32,10 @@ contract CoinToss {
 
     struct Games {
         uint256 current_match_id; // initial value is 0
-        mapping (uint => Game) matches;
+        mapping(uint256 => Game) matches;
     }
 
-    mapping (bytes => Games) games; // maps gamekey to gameID
+    mapping(bytes => Games) games; // maps gamekey to gameID
 
     constructor() {
         deployer = msg.sender;
@@ -47,15 +47,22 @@ contract CoinToss {
         L2_DAPP = l2_dapp;
     }
 
-    function get_gamekey(address player, address opponent, string memory prompt) internal pure returns (bytes memory) {
+    function get_gamekey(address player, address opponent)
+        internal
+        pure
+        returns (bytes memory)
+    {
         bytes memory gamekey;
         if (player < opponent) {
             gamekey = abi.encode(player, opponent);
         } else {
             gamekey = abi.encode(opponent, player);
         }
+        return gamekey;
+    }
 
-
+    // used to create or play game between two players
+    function play(address opponent, string memory prompt) public {
         Conversation storage conversation = conversations[
             current_conversation_id
         ];
@@ -65,24 +72,12 @@ contract CoinToss {
         cartesiSubmitPrompt(current_conversation_id, prompt);
         emit PromptSent(current_conversation_id, prompt);
         current_conversation_id++;
-
-        return gamekey;
-    }
-
-    function cartesiSubmitPrompt(uint256 conversation_id, string memory prompt)
-        public
-    {
-        bytes memory payload = abi.encode(conversation_id, prompt);
-        inputBox.addInput(L2_DAPP, payload); // this line gives an error :-(
-    }
-
-
-    // used to create or play game between two players
-    function play(address opponent) public {
         require(L2_DAPP != address(0));
 
         bytes memory gamekey = get_gamekey(msg.sender, opponent);
-        Game storage game = games[gamekey].matches[games[gamekey].current_match_id];
+        Game storage game = games[gamekey].matches[
+            games[gamekey].current_match_id
+        ];
 
         require(!game.exists || game.pending_player == msg.sender);
 
@@ -95,6 +90,13 @@ contract CoinToss {
         }
     }
 
+    function cartesiSubmitPrompt(uint256 conversation_id, string memory prompt)
+        public
+    {
+        bytes memory payload = abi.encode(conversation_id, prompt);
+        inputBox.addInput(L2_DAPP, payload); // this line gives an error :-(
+    }
+
     function l2_coin_toss(bytes memory gamekey) private {
         // generate randomness
         uint256 coin_toss_seed = uint256(blockhash(block.number - 1));
@@ -105,11 +107,19 @@ contract CoinToss {
         inputBox.addInput(L2_DAPP, payload);
     }
 
-    function announce_winner(address player1, address player2, address winner) public {
-        require(msg.sender == L2_DAPP && (winner == player1 || winner == player2));
+    function announce_winner(
+        address player1,
+        address player2,
+        address winner
+    ) public {
+        require(
+            msg.sender == L2_DAPP && (winner == player1 || winner == player2)
+        );
 
         bytes memory gamekey = get_gamekey(player1, player2);
-        Game storage game = games[gamekey].matches[games[gamekey].current_match_id];
+        Game storage game = games[gamekey].matches[
+            games[gamekey].current_match_id
+        ];
 
         require(game.exists);
 
@@ -121,9 +131,6 @@ contract CoinToss {
         last_game = game;
     }
 
-    event GameResult (
-        bytes gamekey,
-        uint256 gameId,
-        address winner
-    );
+    event GameResult(bytes gamekey, uint256 gameId, address winner);
+    event PromptSent(uint256 conversation_id, string prompt);
 }
