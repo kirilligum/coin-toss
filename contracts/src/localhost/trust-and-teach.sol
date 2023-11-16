@@ -58,20 +58,22 @@ contract CoinToss {
         } else {
             gamekey = abi.encode(opponent, player);
         }
+
         return gamekey;
     }
 
     // used to create or play game between two players
-    function play(address opponent, string memory prompt) public {
-        Conversation storage conversation = conversations[
-            current_conversation_id
-        ];
-        conversation.author = msg.sender;
-        conversation.prompt = prompt;
-        conversation.createInstructionTimestamp = block.timestamp;
-        cartesiSubmitPrompt(current_conversation_id, prompt);
-        emit PromptSent(current_conversation_id, prompt);
-        current_conversation_id++;
+    function play(address opponent) public {
+        // Conversation storage conversation = conversations[
+        //     current_conversation_id
+        // ];
+        // conversation.author = msg.sender;
+        // conversation.prompt = prompt;
+        // conversation.createInstructionTimestamp = block.timestamp;
+        // cartesiSubmitPrompt(current_conversation_id, prompt);
+        // emit PromptSent(current_conversation_id, prompt);
+        // current_conversation_id++;
+
         require(L2_DAPP != address(0));
 
         bytes memory gamekey = get_gamekey(msg.sender, opponent);
