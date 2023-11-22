@@ -16,3 +16,4 @@ yarn && yarn build
 yarn start notice list && yarn start voucher list
 yarn start voucher execute --index 0 --input 0
 cd -
+docker run --rm --net="host" ghcr.io/foundry-rs/foundry "cast send --private-key $PLAYER1_PRIVATE_KEY --rpc-url $RPC_URL $COIN_TOSS_ADDRESS \"sendInstructionPrompt(string)\" \"heeeeieeeyy\""
