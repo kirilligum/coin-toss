@@ -15,7 +15,7 @@ import logging
 import requests
 import json
 import random
-from eth_abi import decode_abi, encode_abi
+from eth_abi import decode, encode
 from Crypto.Hash import keccak
 
 logging.basicConfig(level="INFO")
@@ -55,8 +55,8 @@ def handle_advance(data):
         binary = bytes.fromhex(data["payload"][2:])
 
         # decode payload
-        gamekey, seed = decode_abi(['bytes', 'uint256'], binary)
-        player1, player2 = decode_abi(["address", "address"], gamekey)
+        gamekey, seed = decode(['bytes', 'uint256'], binary)
+        player1, player2 = decode(["address", "address"], gamekey)
 
         result = toss_coin(seed)
 
@@ -73,7 +73,7 @@ def handle_advance(data):
 
         post("notice", {"payload": str2hex(json.dumps(notice))})
 
-        voucher_payload = ANNOUNCE_WINNER_FUNCTION + encode_abi(["address", "address", "address"], [player1, player2, winner])
+        voucher_payload = ANNOUNCE_WINNER_FUNCTION + encode(["address", "address", "address"], [player1, player2, winner])
         voucher = {"destination": coin_toss_addr, "payload": "0x" + voucher_payload.hex()}
         post("voucher", voucher)
 
