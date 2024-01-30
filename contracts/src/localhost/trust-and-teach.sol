@@ -41,30 +41,50 @@ contract TrustAndTeach {
         L2_DAPP = l2_dapp;
     }
 
-    function sendInstructionPrompt(uint256 llmSteps, string memory prompt)
-        public
-    {
+    function sendInstructionPrompt(string memory prompt) public {
         // require(L2_DAPP != address(0));
         Conversation storage conversation = conversations[
             current_conversation_id
         ];
         conversation.author = msg.sender;
         conversation.prompt = prompt;
-        conversation.llmSteps = llmSteps;
         conversation.createInstructionTimestamp = block.timestamp;
-        cartesiSubmitPrompt(current_conversation_id, llmSteps, prompt);
-        emit PromptSent(current_conversation_id, llmSteps, prompt);
+        cartesiSubmitPrompt(current_conversation_id, prompt);
+        emit PromptSent(current_conversation_id, prompt);
         current_conversation_id++;
     }
 
-    function cartesiSubmitPrompt(
-        uint256 conversation_id,
-        uint256 llmSteps,
-        string memory prompt
-    ) public {
-        bytes memory payload = abi.encode(conversation_id, llmSteps, prompt);
+    function cartesiSubmitPrompt(uint256 conversation_id, string memory prompt)
+        public
+    {
+        bytes memory payload = abi.encode(conversation_id, prompt);
         inputBox.addInput(L2_DAPP, payload);
     }
+
+    // function sendInstructionPrompt(uint256 llmSteps, string memory prompt)
+    //     public
+    // {
+    //     // require(L2_DAPP != address(0));
+    //     Conversation storage conversation = conversations[
+    //         current_conversation_id
+    //     ];
+    //     conversation.author = msg.sender;
+    //     conversation.prompt = prompt;
+    //     conversation.llmSteps = llmSteps;
+    //     conversation.createInstructionTimestamp = block.timestamp;
+    //     cartesiSubmitPrompt(current_conversation_id, llmSteps, prompt);
+    //     emit PromptSent(current_conversation_id, llmSteps, prompt);
+    //     current_conversation_id++;
+    // }
+
+    // function cartesiSubmitPrompt(
+    //     uint256 conversation_id,
+    //     uint256 llmSteps,
+    //     string memory prompt
+    // ) public {
+    //     bytes memory payload = abi.encode(conversation_id, llmSteps, prompt);
+    //     inputBox.addInput(L2_DAPP, payload);
+    // }
 
     function getPromptByConversationId(uint256 conversation_id)
         public
@@ -229,6 +249,7 @@ contract TrustAndTeach {
 
     event RankSubmitted(uint256 conversation_id, address user, uint256[] ranks);
     event PromptSent(uint256 conversation_id, uint256 llmSteps, string prompt);
+    event PromptSent(uint256 conversation_id, string prompt);
     event PromptResponseAnnounced(
         uint256 conversation_id,
         uint256 iResponse,
