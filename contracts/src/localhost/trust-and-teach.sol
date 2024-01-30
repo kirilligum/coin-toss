@@ -228,7 +228,7 @@ contract TrustAndTeach {
     }
 
     event RankSubmitted(uint256 conversation_id, address user, uint256[] ranks);
-    event PromptSent(uint256 conversation_id, string prompt);
+    event PromptSent(uint256 conversation_id, uint256 llmSteps, string prompt);
     event PromptResponseAnnounced(
         uint256 conversation_id,
         uint256 iResponse,
