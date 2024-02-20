@@ -20,6 +20,7 @@ contract TrustAndTeach {
     struct Conversation {
         address author;
         string prompt;
+        uint256 llmSteps;
         string[][] responses;
         uint256 rankSubmissionCount;
         mapping(address => RankSubmission) rankSubmissions;
@@ -40,23 +41,28 @@ contract TrustAndTeach {
         L2_DAPP = l2_dapp;
     }
 
-    function sendInstructionPrompt(string memory prompt) public {
-        // require(L2_DAPP != address(0));
+    function sendInstructionPrompt(string memory prompt, uint256 llmSteps)
+        public
+    {
+        require(L2_DAPP != address(0));
         Conversation storage conversation = conversations[
             current_conversation_id
         ];
         conversation.author = msg.sender;
         conversation.prompt = prompt;
+        conversation.llmSteps = llmSteps;
         conversation.createInstructionTimestamp = block.timestamp;
-        cartesiSubmitPrompt(current_conversation_id, prompt);
-        emit PromptSent(current_conversation_id, prompt);
+        cartesiSubmitPrompt(current_conversation_id, llmSteps, prompt);
+        emit PromptSent(current_conversation_id, llmSteps, prompt);
         current_conversation_id++;
     }
 
-    function cartesiSubmitPrompt(uint256 conversation_id, string memory prompt)
-        public
-    {
-        bytes memory payload = abi.encode(conversation_id, prompt);
+    function cartesiSubmitPrompt(
+        uint256 conversation_id,
+        uint256 llmSteps,
+        string memory prompt
+    ) public {
+        bytes memory payload = abi.encode(conversation_id, prompt, llmSteps);
         inputBox.addInput(L2_DAPP, payload);
     }
 
@@ -74,8 +80,9 @@ contract TrustAndTeach {
         uint256 iResponse,
         uint256 iSplitResponse,
         string memory splitResponse
-    ) public {
-        // require(msg.sender == L2_DAPP);
+    ) public // cartesi runs this one
+    {
+        require(msg.sender == L2_DAPP);
         require(
             conversation_id <= current_conversation_id,
             "invalid conversation id, too high"
@@ -183,6 +190,16 @@ contract TrustAndTeach {
         return submission.ranks;
     }
 
+    // Returns the count of conversations that have been created
+    function getConversationCount() public view returns (uint256) {
+        return current_conversation_id;
+    }
+
+    // Returns the address of the deployer
+    function getDeployer() public view returns (address) {
+        return deployer;
+    }
+
     // get a specific rank submitted by a user for a conversation at a given index
     function getRankByUserAtIndex(
         uint256 conversation_id,
@@ -222,7 +239,8 @@ contract TrustAndTeach {
     }
 
     event RankSubmitted(uint256 conversation_id, address user, uint256[] ranks);
-    event PromptSent(uint256 conversation_id, string prompt);
+    event PromptSent(uint256 conversation_id, uint256 llmSteps, string prompt);
+    // event PromptSent(uint256 conversation_id, string prompt);
     event PromptResponseAnnounced(
         uint256 conversation_id,
         uint256 iResponse,
