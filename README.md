@@ -1,6 +1,19 @@
-# Trust-and-Teach AI solidity contract and Cartesi back-End
+# Trust-and-Teach AI solidity contract and Cartesi back-end
+
+## Features
+
+- a record showing the license of this dataset
+- a record showing the llm in use
+- send prompt and the limit of total tokens to the llm
+- post 2 responses on to the chain using vouchers
+- splits long ouput into multiple vouchers due to a length limit in Cartesi
 
 ## Building
+
+If you modified the contract, first remove the image with the contract
+```shell
+docker image rm trust-and-teach-cartesi-contracts
+```
 
 To build the application, run the following command:
 
