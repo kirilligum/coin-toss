@@ -37,7 +37,7 @@ docker compose -f docker-compose.yml -f docker-compose.override.yml down -v
 
 ### Deploying DApps
 
-Deploying a new Cartesi DApp to a blockchain requires creating a smart contract on that network, as well as running a validator node for the DApp.
+Deploying a new Cartesi DApp on a blockchain requires creating a smart contract on that network and running a validator node for the DApp.
 
 The first step is to build the DApp's back-end machine, which will produce a hash that serves as a unique identifier.
 
@@ -46,7 +46,7 @@ docker buildx bake -f docker-bake.hcl -f docker-bake.override.hcl machine --load
 ```
 
 Once the machine docker image is ready, we can use it to deploy a corresponding Rollups smart contract.
-This requires you to specify the account, which for tesing purposes you can create using foundry
+This requires you to specify the account, which for testing purposes, you can create using Foundry
 ```shell
 docker run --rm --net="host" ghcr.io/foundry-rs/foundry "cast wallet new-mnemonic"
 ```
@@ -164,7 +164,7 @@ export RPC_URL="http://localhost:8545"
 > [!NOTE]
 > The image `ghcr.io/foundry-rs/foundry` its from [Foundry](https://book.getfoundry.sh/getting-started/installation) and allow us to use the [cast](https://book.getfoundry.sh/reference/cast/cast) command to send transactions.
 
-1. Execute the `set_dapp_address` method of the `trust-and-teach` contract to set the rollup contract address. This step is to allow the layer-1 contract to send inputs to the Cartesi Rollups DApp.
+1. Execute the `set_dapp_address` method of the `trust-and-teach` contract to set the rollup contract address. This step allows the layer-1 contract to send inputs to the Cartesi Rollups DApp.
 
 ```shell
 docker run --rm --net="host" ghcr.io/foundry-rs/foundry "cast send --private-key $USER_PRIVATE_KEY --rpc-url $RPC_URL $TRUST_AND_TEACH \"set_dapp_address(address)\" $DAPP_ADDRESS"
