@@ -93,6 +93,15 @@ For example, for Sepolia and Alchemy, you would set the following additional var
 export WSS_URL=wss://eth-sepolia.alchemyapi.io/v2/<USER_KEY>
 ```
 
+Before running the Validator Node, a Cartesi Server Manager must be built specifying the network being used.
+
+For example, to build such a server for the Sepolia network, execute the following command:
+
+```shell
+docker buildx bake server --load --set *.args.NETWORK=sepolia
+
+```
+
 Then, the node itself can be started by running a docker compose as follows:
 
 ```shell
