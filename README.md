@@ -74,14 +74,14 @@ DAPP_NAME="trust-and-teach" docker compose --env-file env.<network> -f deploy-te
 Here, `env.<network>` specifies general parameters for the target network, like its name and chain ID. In the case of Sepolia, the command would be:
 
 ```shell
-DAPP_NAME="trust-and-teach" docker compose --env-file env.sepolia -f deploy-testnet.yml up
+CONTRACT_NAME="TrustAndTeach" DAPP_NAME="trust-and-teach" docker compose --env-file env.sepolia -f deploy-testnet.yml up
 ```
 
 This will create a file at `deployments/<network>/trust-and-teach.json` with the deployed contract's address.
 Once the command finishes, it is advisable to stop the docker compose and remove the volumes created when executing it.
 
 ```shell
-DAPP_NAME="trust-and-teach" docker compose --env-file env.<network> -f deploy-testnet.yml down -v
+docker compose --env-file env.<network> -f deploy-testnet.yml down -v
 ```
 
 After that, a corresponding Cartesi Validator Node must also be instantiated in order to interact with the deployed smart contract on the target network and handle the back-end logic of the DApp.
